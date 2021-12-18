@@ -71,8 +71,6 @@
 
     // requestAnimationFrame passes a timestamp to the mainloop callback
     function mainloop(frameTime) {
-        t += dt;
-
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         if (showFPS) {
@@ -90,6 +88,7 @@
         projectile.draw();
 
         if (running) {
+            t += dt;
             projectile.update(t);
             window.requestAnimationFrame(mainloop);
         }
