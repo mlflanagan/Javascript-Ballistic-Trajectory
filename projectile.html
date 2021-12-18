@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<title>Canvas</title>
+<script>
+/*global window, document */
+(function () {
+    "use strict";
+
+    var canvas;
+    var context;
+
+    var running = true;
+
+    const showFPS = true;
+    var fps = 0;
+    var lastFrameTime = 0;
+
+    const g = 9.8;
+    var t = 0;
+    const dt = 0.1;
+
+
+    const ground = {
+        x: 0,
+        y: 0,
+        color: "black",
+
+        draw: function () {
+            context.beginPath();
+            context.moveTo(this.x, this.y);
+            context.lineTo(canvas.width, canvas.height);
+            context.closePath();
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.color;
+            context.stroke();
+        }
+    };
+
+    const projectile = {
+        xOrigin: 0,
+        yOrigin: 0,
+        radius: 3,
+        color: "black",
+        angle: 0,
+        velocity: 0,
+        x: 0,
+        y: 0,
+
+        draw: function () {
+            context.beginPath();
+            context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+            context.closePath();
+            context.fillStyle = this.color;
+            context.fill();
+        },
+
+        update: function (t) {
+            this.x = this.xOrigin + this.velocity * Math.cos(this.angle) * t;
+
+            // y coordinates are reversed, must reverse the signs
+            this.y = this.yOrigin - this.velocity * Math.sin(this.angle) * t + g * t ** 2;
+            // subtract 1 to account for the thickness of the ground line
+            if (this.y >= ground.y - 1 - this.radius) {
+                this.y = ground.y - this.radius;
+                running = false;
+            }
+        }
+    };
+
+    // requestAnimationFrame passes a timestamp to the mainloop callback
+    function mainloop(frameTime) {
+        t += dt;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (showFPS) {
+            // performance.now is more accurate than Date
+            fps = 1 / ((performance.now() - lastFrameTime) / 1000);
+            lastFrameTime = frameTime;
+
+            context.fillStyle = "Black";
+            context.font = "normal 8pt Arial";
+            context.fillText("FPS: " + fps.toFixed(2), 0, 8);
+        }
+
+        ground.draw();
+
+        projectile.draw();
+
+        if (running) {
+            projectile.update(t);
+            window.requestAnimationFrame(mainloop);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        canvas = document.createElement("canvas");
+        canvas.width = 1024;
+        canvas.height = 768;
+        document.body.appendChild(canvas);
+        context = canvas.getContext("2d");
+
+        ground.x = 0;
+        ground.y = canvas.height;
+
+        projectile.xOrigin = projectile.radius;
+        projectile.yOrigin = ground.y - projectile.radius;
+        projectile.angle = Math.PI / 180 * 70;
+        projectile.velocity = 175;
+
+        projectile.x = projectile.xOrigin;
+        projectile.y = projectile.yOrigin;
+
+        mainloop();
+    });
+}());
+</script>
+</head>
+<body>
+</body>
+</html>
+
